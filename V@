@@ -1,0 +1,83 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+    local Window = OrionLib:MakeWindow({Name = "FxZ Hub V1", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+    local Tab = Window:MakeTab({
+        Name = "Main",
+        Icon = "",
+        PremiumOnly = false
+    })
+
+    Tab:AddButton({
+        Name = "Join A Discord if you want to support me",
+        Callback = function()
+            setclipboard("https://discord.gg/f9CEfBPJ")
+            OrionLib:MakeNotification({
+                Name = "Discord Link Copied",
+                Content = "The Discord link has been copied to your clipboard.",
+                Image = "rbxassetid://44831345998",
+                Time = 5
+            })
+        end    
+    })
+
+    OrionLib:MakeNotification({
+	Name = "Dont Be silly Just Join The Discord",
+	Content ="JOIN A DISCOR IF YOU WANT TO SUPPORT ME",
+	Image = "rbxassetid://448334599888",
+	Time = 10000
+})
+
+
+Tab:AddButton({
+	Name = "Button!",
+	Callback = function()
+      		print("button pressed")
+            --// Auto Place
+-- Auto Place
+createButton("Auto Place", UDim2.new(0, 20, 0, 150), function(state)
+	autoPlace = state
+	if autoPlace then
+		task.spawn(function()
+			while autoPlace do
+				local assignedPlot = player:GetAttribute("AssignedPlot")
+				if assignedPlot then
+					for _, plot in pairs(workspace.BasePlots:GetChildren()) do
+						if plot.Name == assignedPlot then
+							local placement = plot:FindFirstChild("Placement")
+							if not placement then return end
+							
+							local baseCFrame = placement.CFrame
+							local size = placement.Size
+							
+							-- Grid spacing
+							local spacing = 5
+							local maxX = math.floor(size.X / spacing)
+							local maxZ = math.floor(size.Z / spacing)
+							
+							local index = 0
+							
+							for _, pack in pairs(player.Backpack:GetChildren()) do
+								local EmployeeType = pack:GetAttribute("EmployeeType")
+								local Variant = pack:GetAttribute("Variant")
+								
+								if EmployeeType and Variant then
+									local x = (index % maxX - maxX / 2) * spacing
+									local z = (math.floor(index / maxX) - maxZ / 2) * spacing
+									
+									local pos = baseCFrame * CFrame.new(x, 5, z)
+									PlaceEmployee:FireServer(EmployeeType, Variant, pos)
+									
+									index += 1
+									task.wait(0.1)
+								end
+							end
+						end
+					end
+				end
+				task.wait(2)
+			end
+		end)
+	end
+end)
+  	end    
+})
