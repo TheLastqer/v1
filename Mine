@@ -28,7 +28,7 @@ local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jen
 })
 
 Tab:AddButton({
-	Name = "Button!",
+	Name = "Open Source",
 	Callback = function()
       		print("button pressed")
             --[[
