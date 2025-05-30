@@ -1,0 +1,131 @@
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+--// Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local userid = player.UserId
+
+--// Remotes
+local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local BuyEmployee = RemoteEvents:WaitForChild("BuyEmployee")
+local PlaceEmployee = RemoteEvents:WaitForChild("PlaceEmployee")
+local GetShopData = ReplicatedStorage:WaitForChild("RemoteFunctions"):WaitForChild("GetShopData")
+
+--// Flags
+local autoBuy = false
+local autoPlace = false
+local autoCollect = false
+
+--// Create UI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "EmployeeAutoGui"
+
+local function createButton(name, position, callback)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 150, 0, 40)
+	button.Position = position
+	button.Text = name .. ": OFF"
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.Font = Enum.Font.Gotham
+	button.TextSize = 18
+	button.Parent = screenGui
+	
+	local state = false
+	button.MouseButton1Click:Connect(function()
+		state = not state
+		button.Text = name .. ": " .. (state and "ON" or "OFF")
+		callback(state)
+	end)
+end
+
+--// Auto Buy
+createButton("Auto Buy", UDim2.new(0, 20, 0, 100), function(state)
+	autoBuy = state
+	if autoBuy then
+		task.spawn(function()
+			while autoBuy do
+				local shopInfo = GetShopData:InvokeServer()
+				for _, v in pairs(shopInfo) do
+					BuyEmployee:FireServer(v["Name"])
+					task.wait(0.1)
+				end
+				task.wait(2)
+			end
+		end)
+	end
+end)
+
+--// Auto Place
+-- Auto Place
+createButton("Auto Place", UDim2.new(0, 20, 0, 150), function(state)
+	autoPlace = state
+	if autoPlace then
+		task.spawn(function()
+			while autoPlace do
+				local assignedPlot = player:GetAttribute("AssignedPlot")
+				if assignedPlot then
+					for _, plot in pairs(workspace.BasePlots:GetChildren()) do
+						if plot.Name == assignedPlot then
+							local placement = plot:FindFirstChild("Placement")
+							if not placement then return end
+							
+							local baseCFrame = placement.CFrame
+							local size = placement.Size
+							
+							-- Grid spacing
+							local spacing = 5
+							local maxX = math.floor(size.X / spacing)
+							local maxZ = math.floor(size.Z / spacing)
+							
+							local index = 0
+							
+							for _, pack in pairs(player.Backpack:GetChildren()) do
+								local EmployeeType = pack:GetAttribute("EmployeeType")
+								local Variant = pack:GetAttribute("Variant")
+								
+								if EmployeeType and Variant then
+									local x = (index % maxX - maxX / 2) * spacing
+									local z = (math.floor(index / maxX) - maxZ / 2) * spacing
+									
+									local pos = baseCFrame * CFrame.new(x, 5, z)
+									PlaceEmployee:FireServer(EmployeeType, Variant, pos)
+									
+									index += 1
+									task.wait(0.1)
+								end
+							end
+						end
+					end
+				end
+				task.wait(2)
+			end
+		end)
+	end
+end)
+
+--// Auto Collect
+createButton("Auto Collect", UDim2.new(0, 20, 0, 200), function(state)
+	autoCollect = state
+	if autoCollect then
+		task.spawn(function()
+			while autoCollect do
+				for _, v in pairs(workspace.PlacedEmployees:GetChildren()) do
+					if v:IsA("Model") and v:GetAttribute("OwnerUserId") == userid then
+						local CollectCash = v:FindFirstChild("CollectCash")
+						if CollectCash then
+							local prompt = CollectCash:FindFirstChildOfClass("ProximityPrompt")
+							if prompt and prompt.Enabled then
+								fireproximityprompt(prompt, 1)
+								task.wait(0.05)
+							end
+						end
+					end
+				end
+				task.wait(1)
+			end
+		end)
+	end
+end)
