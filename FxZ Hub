@@ -1,0 +1,36 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
+    local Window = OrionLib:MakeWindow({Name = "FxZ Hub V1", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+
+    local Tab = Window:MakeTab({
+        Name = "Main",
+        Icon = "",
+        PremiumOnly = false
+    })
+
+    Tab:AddButton({
+        Name = "Join A Discord if you want to support me",
+        Callback = function()
+            setclipboard("https://discord.gg/f9CEfBPJ")
+            OrionLib:MakeNotification({
+                Name = "Discord Link Copied",
+                Content = "The Discord link has been copied to your clipboard.",
+                Image = "rbxassetid://44831345998",
+                Time = 5
+            })
+        end    
+    })
+
+    OrionLib:MakeNotification({
+	Name = "Dont Be silly Just Join The Discord",
+	Content ="JOIN A DISCOR IF YOU WANT TO SUPPORT ME",
+	Image = "rbxassetid://448334599888",
+	Time = 10000
+})
+
+Tab:AddButton({
+	Name = "Open Source Op",
+	Callback = function()
+      		print("button pressed")
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/TheLastqer/v1/refs/heads/main/Mine'))()
+  	end    
+})
