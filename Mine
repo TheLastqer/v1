@@ -1,38 +1,64 @@
-local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/jensonhirst/Orion/main/source')))()
-    local Window = OrionLib:MakeWindow({Name = "FxZ Hub V1", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest"})
+--[[
+	WARNING: Heads up! This script has not been verified by ScriptBlox. Use at your own risk!
+]]
+--// Services
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local player = Players.LocalPlayer
+local userid = player.UserId
 
-    local Tab = Window:MakeTab({
-        Name = "Main",
-        Icon = "",
-        PremiumOnly = false
-    })
+--// Remotes
+local RemoteEvents = ReplicatedStorage:WaitForChild("RemoteEvents")
+local BuyEmployee = RemoteEvents:WaitForChild("BuyEmployee")
+local PlaceEmployee = RemoteEvents:WaitForChild("PlaceEmployee")
+local GetShopData = ReplicatedStorage:WaitForChild("RemoteFunctions"):WaitForChild("GetShopData")
 
-    Tab:AddButton({
-        Name = "Join A Discord if you want to support me",
-        Callback = function()
-            setclipboard("https://discord.gg/f9CEfBPJ")
-            OrionLib:MakeNotification({
-                Name = "Discord Link Copied",
-                Content = "The Discord link has been copied to your clipboard.",
-                Image = "rbxassetid://44831345998",
-                Time = 5
-            })
-        end    
-    })
+--// Flags
+local autoBuy = false
+local autoPlace = false
+local autoCollect = false
 
-    OrionLib:MakeNotification({
-	Name = "Dont Be silly Just Join The Discord",
-	Content ="JOIN A DISCOR IF YOU WANT TO SUPPORT ME",
-	Image = "rbxassetid://448334599888",
-	Time = 10000
-})
+--// Create UI
+local screenGui = Instance.new("ScreenGui", player:WaitForChild("PlayerGui"))
+screenGui.Name = "EmployeeAutoGui"
 
+local function createButton(name, position, callback)
+	local button = Instance.new("TextButton")
+	button.Size = UDim2.new(0, 150, 0, 40)
+	button.Position = position
+	button.Text = name .. ": OFF"
+	button.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	button.TextColor3 = Color3.fromRGB(255, 255, 255)
+	button.Font = Enum.Font.Gotham
+	button.TextSize = 18
+	button.Parent = screenGui
+	
+	local state = false
+	button.MouseButton1Click:Connect(function()
+		state = not state
+		button.Text = name .. ": " .. (state and "ON" or "OFF")
+		callback(state)
+	end)
+end
 
-Tab:AddButton({
-	Name = "Auto Place",
-	Callback = function()
-      		print("button pressed")
-            --// Auto Place
+--// Auto Buy
+createButton("Auto Buy", UDim2.new(0, 20, 0, 100), function(state)
+	autoBuy = state
+	if autoBuy then
+		task.spawn(function()
+			while autoBuy do
+				local shopInfo = GetShopData:InvokeServer()
+				for _, v in pairs(shopInfo) do
+					BuyEmployee:FireServer(v["Name"])
+					task.wait(0.1)
+				end
+				task.wait(2)
+			end
+		end)
+	end
+end)
+
+--// Auto Place
 -- Auto Place
 createButton("Auto Place", UDim2.new(0, 20, 0, 150), function(state)
 	autoPlace = state
@@ -79,14 +105,8 @@ createButton("Auto Place", UDim2.new(0, 20, 0, 150), function(state)
 		end)
 	end
 end)
-  	end    
-})
 
-Tab:AddButton({
-	Name = "AUTO Collect",
-	Callback = function()
-      		print("button pressed")
-            --// Auto Collect
+--// Auto Collect
 createButton("Auto Collect", UDim2.new(0, 20, 0, 200), function(state)
 	autoCollect = state
 	if autoCollect then
@@ -109,28 +129,3 @@ createButton("Auto Collect", UDim2.new(0, 20, 0, 200), function(state)
 		end)
 	end
 end)
-  	end    
-})
-
-Tab:AddButton({
-	Name = "Auto Buy",
-	Callback = function()
-      		print("button pressed")
-            --// Auto Buy
-createButton("Auto Buy", UDim2.new(0, 20, 0, 100), function(state)
-	autoBuy = state
-	if autoBuy then
-		task.spawn(function()
-			while autoBuy do
-				local shopInfo = GetShopData:InvokeServer()
-				for _, v in pairs(shopInfo) do
-					BuyEmployee:FireServer(v["Name"])
-					task.wait(0.1)
-				end
-				task.wait(2)
-			end
-		end)
-	end
-end)
-  	end    
-})
